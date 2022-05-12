@@ -29,6 +29,7 @@ import com.cst438.controllers.AssignmentController;
 import com.cst438.domain.Assignment;
 import com.cst438.domain.AssignmentDTO;
 import com.cst438.domain.AssignmentRepository;
+import com.cst438.domain.CourseRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @ContextConfiguration(classes = {AssignmentController.class})
@@ -46,6 +47,9 @@ public class JunitTestAssignment {
 	
 	@MockBean
 	AssignmentRepository assignmentRepository;
+	
+	@MockBean
+	CourseRepository courseRepository;
 
 	@Autowired
 	private MockMvc mvc;
