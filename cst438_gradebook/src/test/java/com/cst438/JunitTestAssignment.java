@@ -22,13 +22,16 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import java.util.Calendar;
 import java.util.Optional;
 
 import com.cst438.controllers.AssignmentController;
 import com.cst438.domain.Assignment;
 import com.cst438.domain.AssignmentDTO;
 import com.cst438.domain.AssignmentRepository;
+import com.cst438.domain.Course;
 import com.cst438.domain.CourseRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -44,6 +47,7 @@ public class JunitTestAssignment {
 	public static final String RENAME_URL = "/assignment/rename";
 	public static final String DELETE_URL = "/assignment/delete";
 	private static Assignment assignment;
+	private static Course course;
 	
 	@MockBean
 	AssignmentRepository assignmentRepository;
@@ -56,10 +60,18 @@ public class JunitTestAssignment {
 
 	@BeforeEach
 	public void setUp() {
+		course = new Course();
+		course.setCourse_id(1);
+		course.setTitle("Test");
+		course.setInstructor("Test");
+		course.setYear(2022);
+		course.setSemester("Spring");
+		
 		assignment = new Assignment();
 		assignment.setId(TEST_ID);
 		assignment.setDueDate(TEST_DUE_DATE);
 		assignment.setName(TEST_NAME);
+		assignment.setCourse(course);
 	}
 	
 	@Test
@@ -91,7 +103,7 @@ public class JunitTestAssignment {
 	
 	@Test
 	void addNewAssignment() throws Exception {
-		given(assignmentRepository.findById(TEST_ID)).willReturn(null);
+		given(courseRepository.findById(TEST_ID)).willReturn(null);
 		given(assignmentRepository.save(any(Assignment.class))).willReturn(assignment);
 
 		AssignmentDTO assignmentDTO = new AssignmentDTO(TEST_DUE_DATE, TEST_NAME);
@@ -114,7 +126,8 @@ public class JunitTestAssignment {
 	@Test
 	void renameExistingAssignment() throws Exception {
 		given(assignmentRepository.findById(TEST_ID)).willReturn(assignment);
-
+		given(assignmentRepository.save(any(Assignment.class))).willReturn(assignment);
+		
 		MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.put(RENAME_URL 
 				+ "/" + TEST_ID + "?name=" + TEST_NAME);
 		mvc.perform(builder).andExpect(MockMvcResultMatchers.status().isOk());
@@ -135,10 +148,10 @@ public class JunitTestAssignment {
 	
 	@Test
 	void deleteExistingAssignmentNoGrade() throws Exception {
+		assignment.setNeedsGrading(0);
 		given(assignmentRepository.findById(TEST_ID)).willReturn(assignment);
-		given(assignment.getNeedsGrading()==0);
 
-		MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.put(
+		MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.delete(
 				DELETE_URL + "/" + TEST_ID);
 		mvc.perform(builder).andExpect(MockMvcResultMatchers.status().isOk());
 
@@ -147,10 +160,10 @@ public class JunitTestAssignment {
 	
 	@Test
 	void deleteExistingAssignmentGrade() throws Exception {
+		assignment.setNeedsGrading(1);
 		given(assignmentRepository.findById(TEST_ID)).willReturn(assignment);
-		given(assignment.getNeedsGrading()==1);
 
-		MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.put(
+		MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.delete(
 				DELETE_URL + "/" + TEST_ID);
 		mvc.perform(builder).andExpect(MockMvcResultMatchers.status().isBadRequest());
 
@@ -161,7 +174,7 @@ public class JunitTestAssignment {
 	void deleteNonExistingAssignment() throws Exception {
 		given(assignmentRepository.findById(TEST_ID)).willReturn(null);
 
-		MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.put(
+		MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.delete(
 				DELETE_URL + "/" + TEST_ID);
 		mvc.perform(builder).andExpect(MockMvcResultMatchers.status().isBadRequest());
 
