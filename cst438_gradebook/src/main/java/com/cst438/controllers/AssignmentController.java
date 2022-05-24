@@ -53,7 +53,7 @@ public class AssignmentController {
 		assignment.setName(newAssignmentDTO.name);
 		assignment.setDueDate(newAssignmentDTO.due_date);
 		assignment.setCourse(courseRepository.findById(newAssignmentDTO.course_id));
-		assignment.setCourse(null);
+		//assignment.setCourse(null);
 		return new AssignmentDTO(assignmentRepository.save(assignment));
 	}
 	

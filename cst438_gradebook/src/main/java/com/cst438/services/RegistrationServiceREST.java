@@ -21,6 +21,9 @@ public class RegistrationServiceREST extends RegistrationService {
 	public void sendFinalGrades(int course_id , CourseDTOG courseDTO) { 
 		
 		//TODO  complete this method in homework 4
+//		this.restTemplate.postForEntity(registration_url + "/course/" + course_id, courseDTO, null);
+		System.out.println("Sending: " + courseDTO);
+		this.restTemplate.put(registration_url + "/course/" + course_id, courseDTO);
 		
 	}
 }
