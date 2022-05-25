@@ -103,7 +103,7 @@ public class JunitTestAssignment {
 	
 	@Test
 	void addNewAssignment() throws Exception {
-		given(courseRepository.findById(TEST_ID)).willReturn(null);
+		
 		given(assignmentRepository.save(any(Assignment.class))).willReturn(assignment);
 
 		AssignmentDTO assignmentDTO = new AssignmentDTO(TEST_DUE_DATE, TEST_NAME);

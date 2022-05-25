@@ -23,18 +23,23 @@ public class EnrollmentController {
 	@Autowired
 	EnrollmentRepository enrollmentRepository;
 
-	/*
-	 * endpoint used by registration service to add an enrollment to an existing
-	 * course.
-	 */
+	
 	@PostMapping("/enrollment")
 	@Transactional
 	public EnrollmentDTO addEnrollment(@RequestBody EnrollmentDTO enrollmentDTO) {
-		
-		//TODO  complete this method in homework 4
-		
-		return null;
-		
+		Enrollment enrollment = new Enrollment();
+		enrollment.setCourse(courseRepository.findById(enrollmentDTO.course_id));
+		enrollment.setStudentEmail(enrollmentDTO.studentEmail);
+		enrollment.setStudentName(enrollmentDTO.studentName);
+		return createEnrollmentDTO(enrollmentRepository.save(enrollment));
 	}
-
+	
+	private EnrollmentDTO createEnrollmentDTO(Enrollment enrollment) {
+		EnrollmentDTO enrollmentDTO = new EnrollmentDTO();
+		enrollmentDTO.id = enrollment.getId();
+		enrollmentDTO.course_id = enrollment.getCourse() == null ? null : enrollment.getCourse().getCourse_id();
+		enrollmentDTO.studentEmail = enrollment.getStudentEmail();
+		enrollmentDTO.studentName = enrollment.getStudentName();
+		return enrollmentDTO;
+	}
 }
