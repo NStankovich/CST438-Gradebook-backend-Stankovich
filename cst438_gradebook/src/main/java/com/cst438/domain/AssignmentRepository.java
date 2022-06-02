@@ -12,4 +12,7 @@ public interface AssignmentRepository extends CrudRepository <Assignment, Intege
 	List<Assignment> findNeedGradingByEmail(@Param("email") String email);
 	
 	public Assignment findById(int id);
+	
+	@Query("select a from Assignment a where a.name = :name")
+	Assignment findByName(@Param("name") String name);
 }

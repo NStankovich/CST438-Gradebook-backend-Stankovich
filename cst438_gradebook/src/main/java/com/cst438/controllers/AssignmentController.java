@@ -19,6 +19,8 @@ import com.cst438.domain.AssignmentDTO;
 import com.cst438.domain.AssignmentRepository;
 import com.cst438.domain.CourseRepository;
 
+import java.sql.Date;
+
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
 public class AssignmentController {
