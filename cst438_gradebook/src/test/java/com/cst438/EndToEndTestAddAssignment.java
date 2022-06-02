@@ -109,9 +109,10 @@ public class EndToEndTestAddAssignment {
 		} finally {
 
 			// clean up database.
-			/*Assignment a = assignmentRepository.findByName(TEST_ASSIGNMENT_NAME);
-			if (a!=null) assignmentRepository.delete(a);*/
-
+			Assignment a = assignmentRepository.findByName(TEST_ASSIGNMENT_NAME);
+			if (a!=null) assignmentRepository.delete(a);
+			c = courseRepository.findById(TEST_COURSE_ID);
+			if (c!=null) courseRepository.delete(c);
 			driver.quit();
 		}
 
