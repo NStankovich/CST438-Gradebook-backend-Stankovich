@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import com.cst438.domain.Assignment;
 import com.cst438.domain.AssignmentListDTO;
@@ -27,6 +29,8 @@ import com.cst438.domain.CourseRepository;
 import com.cst438.domain.Enrollment;
 import com.cst438.domain.GradebookDTO;
 import com.cst438.services.RegistrationService;
+import com.cst438.domain.StudentGradesDTO;
+import com.cst438.domain.AssignmentGradeDTO;
 
 @RestController
 @CrossOrigin(origins = {"http://localhost:3000","http://localhost:3001"})
@@ -46,9 +50,9 @@ public class GradeBookController {
 	
 	// get assignments for an instructor that need grading
 	@GetMapping("/gradebook")
-	public AssignmentListDTO getAssignmentsNeedGrading( ) {
+	public AssignmentListDTO getAssignmentsNeedGrading( @AuthenticationPrincipal OAuth2User principal ) {
 		
-		String email = "jjolley@csumb.edu";  // user name (should be instructor's email) 
+		String email = principal.getAttribute("email"); 
 		
 		List<Assignment> assignments = assignmentRepository.findNeedGradingByEmail(email);
 		AssignmentListDTO result = new AssignmentListDTO();
@@ -59,9 +63,9 @@ public class GradeBookController {
 	}
 	
 	@GetMapping("/gradebook/{id}")
-	public GradebookDTO getGradebook(@PathVariable("id") Integer assignmentId  ) {
+	public GradebookDTO getGradebook(@PathVariable("id") Integer assignmentId, @AuthenticationPrincipal OAuth2User principal ) {
 		
-		String email = "dwisneski@csumb.edu";  // user name (should be instructor's email) 
+		String email = principal.getAttribute("email");
 		Assignment assignment = checkAssignment(assignmentId, email);
 		
 		// get the enrollment for the course
@@ -92,11 +96,11 @@ public class GradeBookController {
 	
 	@PostMapping("/course/{course_id}/finalgrades")
 	@Transactional
-	public void calcFinalGrades(@PathVariable int course_id) {
+	public void calcFinalGrades(@PathVariable int course_id, @AuthenticationPrincipal OAuth2User principal) {
 		System.out.println("Gradebook - calcFinalGrades for course " + course_id);
 		
 		// check that this request is from the course instructor 
-		String email = "jjolley@csumb.edu";  // user name (should be instructor's email) 
+		String email = principal.getAttribute("email");
 		
 		Course c = Optional.of(courseRepository.findById(course_id)).orElse(null);
 		if (!c.getInstructor().equals(email)) {
@@ -135,9 +139,9 @@ public class GradeBookController {
 	
 	@PutMapping("/gradebook/{id}")
 	@Transactional
-	public void updateGradebook (@RequestBody GradebookDTO gradebook, @PathVariable("id") Integer assignmentId ) {
+	public void updateGradebook (@RequestBody GradebookDTO gradebook, @PathVariable("id") Integer assignmentId, @AuthenticationPrincipal OAuth2User principal ) {
 		
-		String email = "dwisneski@csumb.edu";  // user name (should be instructor's email) 
+		String email = principal.getAttribute("email");
 		checkAssignment(assignmentId, email);  // check that user name matches instructor email of the course.
 		
 		// for each grade in gradebook, update the assignment grade in database 
@@ -155,6 +159,36 @@ public class GradeBookController {
 			assignmentGradeRepository.save(ag);
 		}
 		
+	}
+	
+	@GetMapping("/student-grades")
+	@Transactional
+	public StudentGradesDTO getStudentGrades (@AuthenticationPrincipal OAuth2User principal) {
+		
+		String email = principal.getAttribute("email"); 
+
+		List<AssignmentGrade> grades = assignmentGradeRepository.findStudentGradesByEmail(email);
+
+		StudentGradesDTO result = new StudentGradesDTO();
+
+		for (AssignmentGrade grade : grades) {
+			AssignmentGradeDTO gradesDTO = new AssignmentGradeDTO(grade);
+			result.assignmentGrades.add(gradesDTO);
+		}
+
+		return result;
+	}
+	
+	@GetMapping("/user/status")
+	@Transactional
+	public String getStatus(@AuthenticationPrincipal OAuth2User principal) {
+		String email = principal.getAttribute("email");
+		if (email == null) {
+			throw new ResponseStatusException( HttpStatus.BAD_REQUEST, "Login Error");
+		}
+		List<Course> courses = courseRepository.findAllByEmail(email);
+		if (courses == null || courses.size() == 0) {return "student";}
+		return "instructor";
 	}
 	
 	private Assignment checkAssignment(int assignmentId, String email) {

@@ -3,6 +3,7 @@ package com.cst438.domain;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+import java.util.List;
 
 public interface AssignmentGradeRepository extends CrudRepository <AssignmentGrade, Integer> {
 	
@@ -10,5 +11,8 @@ public interface AssignmentGradeRepository extends CrudRepository <AssignmentGra
 	AssignmentGrade findByAssignmentIdAndStudentEmail(
 			@Param("assignmentId") int assignmentId, 
 			@Param("email") String email );
+	
+	@Query("select a from AssignmentGrade a where a.studentEnrollment.studentEmail=:email")
+	List<AssignmentGrade> findStudentGradesByEmail(@Param("email") String email );
 	
 }
